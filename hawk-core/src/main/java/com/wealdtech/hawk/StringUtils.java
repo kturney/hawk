@@ -18,19 +18,11 @@ package com.wealdtech.hawk;
 
 import java.security.SecureRandom;
 
-/*package*/ enum StringUtils
+/*package*/ final class StringUtils
 {
-  INSTANCE;
-
-  private static final SecureRandom RANDOMSOURCE;
+  private static final SecureRandom RANDOMSOURCE = new SecureRandom();
   private static final String CANDIDATES = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  private static final int CANDIDATESLEN;
-
-  static
-  {
-    RANDOMSOURCE = new SecureRandom();
-    CANDIDATESLEN = CANDIDATES.length();
-  }
+  private static final int CANDIDATESLEN = CANDIDATES.length();
 
   /**
    * Generate a random string of alphanumeric characters.
@@ -41,7 +33,7 @@ import java.security.SecureRandom;
    * @param length the length of the string to generate
    * @return a string of random alphanumeric characters of the requested length
    */
-  public static String generateRandomString(int length)
+  public static final String generateRandomString(int length)
   {
     final StringBuffer sb = new StringBuffer(length);
     for (int i = 0; i < length; i++)
@@ -51,4 +43,5 @@ import java.security.SecureRandom;
     return sb.toString();
   }
 
+  private StringUtils() {}
 }
