@@ -20,9 +20,9 @@ import java.security.SecureRandom;
 
 /*package*/ final class StringUtils
 {
-  private static final SecureRandom RANDOMSOURCE = new SecureRandom();
+  private static final SecureRandom RANDOM_SOURCE = new SecureRandom();
   private static final String CANDIDATES = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  private static final int CANDIDATESLEN = CANDIDATES.length();
+  private static final int CANDIDATES_LEN = CANDIDATES.length();
 
   /**
    * Generate a random string of alphanumeric characters.
@@ -38,7 +38,7 @@ import java.security.SecureRandom;
     final StringBuffer sb = new StringBuffer(length);
     for (int i = 0; i < length; i++)
     {
-      sb.append(CANDIDATES.charAt(RANDOMSOURCE.nextInt(CANDIDATESLEN)));
+      sb.append(CANDIDATES.charAt(RANDOM_SOURCE.nextInt(CANDIDATES_LEN)));
     }
     return sb.toString();
   }
