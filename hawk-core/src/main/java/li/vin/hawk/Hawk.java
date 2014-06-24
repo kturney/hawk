@@ -18,8 +18,8 @@ package li.vin.hawk;
 
 import android.util.Base64;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
@@ -41,6 +41,7 @@ public class Hawk
 
   private static final int DEFAULT_HTTP_PORT = 80;
   private static final int DEFAULT_HTTPS_PORT = 443;
+  private static final Charset UTF8 = Charset.forName("UTF-8");
 
   /**
    * Calculate and return a MAC. The MAC is used to sign the method and
@@ -87,7 +88,7 @@ public class Hawk
   {
     // Check that required parameters are present
     if (credentials == null) {
-        throw new NullPointerException("Credentials are required but not supplied");
+      throw new NullPointerException("Credentials are required but not supplied");
     }
     if (timestamp == null) {
       throw new NullPointerException("Timestamp is required but not supplied");
@@ -194,10 +195,10 @@ public class Hawk
   public static String calculateTSMac(final long curtime)
   {
     final HawkCredentials credentials = new HawkCredentials.Builder()
-                                                           .keyId("dummy")
-                                                           .key("dummy")
-                                                           .algorithm(Algorithm.SHA256)
-                                                           .build();
+        .keyId("dummy")
+        .key("dummy")
+        .algorithm(Algorithm.SHA256)
+        .build();
     return calculateMac(credentials, String.valueOf(curtime));
   }
 
@@ -260,12 +261,8 @@ public class Hawk
       Mac mac = Mac.getInstance(credentials.getJavaAlgorithm());
       try
       {
-        mac.init(new SecretKeySpec(credentials.getKey().getBytes("UTF-8"), credentials.getJavaAlgorithm()));
-        return Base64.encodeToString(mac.doFinal(text.getBytes("UTF-8")), Base64.DEFAULT);
-      }
-      catch (UnsupportedEncodingException uee)
-      {
-        throw new HawkError("Unable to encode with UTF-8", uee);
+        mac.init(new SecretKeySpec(credentials.getKey().getBytes(UTF8), credentials.getJavaAlgorithm()));
+        return new String(Base64.encode(mac.doFinal(text.getBytes(UTF8)), Base64.NO_WRAP), UTF8);
       }
       catch (InvalidKeyException e)
       {
@@ -327,7 +324,8 @@ public class Hawk
     {
       sb.append(ext);
     }
-    return Base64.encodeToString(sb.toString().getBytes(), Base64.DEFAULT);
+
+    return new String(Base64.encode(sb.toString().getBytes(UTF8), Base64.NO_WRAP), UTF8);
   }
 
   public enum AuthType
@@ -344,7 +342,7 @@ public class Hawk
     @Override
     public String toString()
     {
-        return super.toString().toLowerCase(Locale.ENGLISH);
+      return super.toString().toLowerCase(Locale.ENGLISH);
     }
 
     public static AuthType parse(final String authType)
@@ -381,7 +379,7 @@ public class Hawk
     @Override
     public String toString()
     {
-        return super.toString().toLowerCase(Locale.ENGLISH).replaceAll("_", "-");
+      return super.toString().toLowerCase(Locale.ENGLISH).replaceAll("_", "-");
     }
 
     public static PayloadValidation parse(final String payloadValidation)
