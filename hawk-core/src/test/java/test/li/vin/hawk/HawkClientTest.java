@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package test.com.wealdtech.hawk;
+package test.li.vin.hawk;
 
 import static org.testng.Assert.*;
 
@@ -24,10 +24,10 @@ import java.net.URI;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.wealdtech.hawk.Hawk.PayloadValidation;
-import com.wealdtech.hawk.HawkClient;
-import com.wealdtech.hawk.HawkClientConfiguration;
-import com.wealdtech.hawk.HawkCredentials;
+import li.vin.hawk.Hawk.PayloadValidation;
+import li.vin.hawk.HawkClient;
+import li.vin.hawk.HawkClientConfiguration;
+import li.vin.hawk.HawkCredentials;
 
 public class HawkClientTest
 {

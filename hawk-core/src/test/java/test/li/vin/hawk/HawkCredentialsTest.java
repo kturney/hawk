@@ -14,14 +14,14 @@
  *   limitations under the License.
  */
 
-package test.com.wealdtech.hawk;
+package test.li.vin.hawk;
 
 import static org.testng.Assert.*;
 
 import org.testng.annotations.Test;
 
-import com.wealdtech.hawk.HawkCredentials;
-import com.wealdtech.hawk.HawkCredentials.Algorithm;
+import li.vin.hawk.HawkCredentials;
+import li.vin.hawk.HawkCredentials.Algorithm;
 
 public class HawkCredentialsTest
 {

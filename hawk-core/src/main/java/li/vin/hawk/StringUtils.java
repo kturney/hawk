@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package com.wealdtech.hawk;
+package li.vin.hawk;
 
 import java.security.SecureRandom;
 

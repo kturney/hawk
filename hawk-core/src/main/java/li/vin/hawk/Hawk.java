@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package com.wealdtech.hawk;
+package li.vin.hawk;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -25,7 +25,7 @@ import java.util.Locale;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.wealdtech.hawk.HawkCredentials.Algorithm;
+import li.vin.hawk.HawkCredentials.Algorithm;
 
 /**
  * The Hawk class provides helper methods for calculating the MAC, required by
