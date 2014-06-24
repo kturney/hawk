@@ -16,6 +16,8 @@
 
 package li.vin.hawk;
 
+import android.util.Base64;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.InvalidKeyException;
@@ -259,8 +261,7 @@ public class Hawk
       try
       {
         mac.init(new SecretKeySpec(credentials.getKey().getBytes("UTF-8"), credentials.getJavaAlgorithm()));
-        return ""; // TODO: BASE64
-//        return BaseEncoding.base64().encode(mac.doFinal(text.getBytes("UTF-8")));
+        return Base64.encodeToString(mac.doFinal(text.getBytes("UTF-8")), Base64.DEFAULT);
       }
       catch (UnsupportedEncodingException uee)
       {
@@ -326,8 +327,7 @@ public class Hawk
     {
       sb.append(ext);
     }
-    return ""; // TODO: BASE64
-//    return BaseEncoding.base64().encode(sb.toString().getBytes());
+    return Base64.encodeToString(sb.toString().getBytes(), Base64.DEFAULT);
   }
 
   public enum AuthType

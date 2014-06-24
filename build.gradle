@@ -1,53 +1,17 @@
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+apply plugin: 'idea'
 
+buildscript {
     repositories {
         mavenCentral()
-        mavenLocal()
     }
-
     dependencies {
-        testCompile 'org.testng:testng:6.8'
-    }
-
-    group = 'li.vin.hawk'
-    version = '0.1.0'
-
-    test {
-        useTestNG()
-    }
-
-    task copyLibs (type: Copy) {
-        into "$buildDir/output/libs"
-        from configurations.testRuntime
-    }
-
-    task testJar (type: Jar) {
-        classifier = 'tests'
-        from sourceSets.test.output
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from 'build/docs/javadoc'
-    }
-
-    task sourcesJar(type: Jar) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
-    artifacts {
-        archives jar
-        archives javadocJar
-        archives sourcesJar
-    }
-
-    idea.module.iml {
-        beforeMerged { module ->
-            module.dependencies.clear()
-        }
+        classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
