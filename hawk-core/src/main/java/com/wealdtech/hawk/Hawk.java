@@ -16,8 +16,6 @@
 
 package com.wealdtech.hawk;
 
-import static com.wealdtech.Preconditions.*;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.InvalidKeyException;
@@ -27,12 +25,6 @@ import java.util.Locale;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import com.google.common.base.Strings;
-import com.google.common.io.BaseEncoding;
-import com.wealdtech.DataError;
-import com.wealdtech.ServerError;
 import com.wealdtech.hawk.HawkCredentials.Algorithm;
 
 /**
@@ -79,9 +71,6 @@ public class Hawk
    * @param dlg
    *          delegator, used for Oz
    * @return the MAC
-   * @throws DataError
-   *           if there is an issue with the data that prevents creation of the
-   *           MAC
    */
   public static String calculateMAC(final HawkCredentials credentials,
                                     final AuthType authType,
@@ -95,16 +84,28 @@ public class Hawk
                                     final String dlg)
   {
     // Check that required parameters are present
-    checkNotNull(credentials, "Credentials are required but not supplied");
-    checkNotNull(timestamp, "Timestamp is required but not supplied");
-    checkNotNull(uri, "URI is required but not supplied");
-    checkNotNull(authType, "Authentication type is required but not supplied");
+    if (credentials == null) {
+        throw new NullPointerException("Credentials are required but not supplied");
+    }
+    if (timestamp == null) {
+      throw new NullPointerException("Timestamp is required but not supplied");
+    }
+    if (uri == null) {
+      throw new NullPointerException("URI is required but not supplied");
+    }
+    if (authType == null) {
+      throw new NullPointerException("Authentication type is required but not supplied");
+    }
 
     if (authType.equals(AuthType.HEADER))
     {
       // Additional parameters for core authentications
-      checkNotNull(nonce, "Nonce is required but not supplied");
-      checkNotNull(method, "Method is required but not supplied");
+      if (nonce == null) {
+        throw new NullPointerException("Nonce is required but not supplied");
+      }
+      if (method == null) {
+        throw new NullPointerException("Method is required but not supplied");
+      }
     }
 
     final StringBuilder sb = new StringBuilder(1024);
@@ -146,13 +147,15 @@ public class Hawk
       sb.append(hash);
     }
     sb.append('\n');
-    sb.append(Strings.nullToEmpty(ext).replace("\\", "\\\\").replace("\n", "\\n"));
+    final String checkedExt = ext == null ? "" : ext;
+    sb.append(checkedExt.replace("\\", "\\\\").replace("\n", "\\n"));
     sb.append('\n');
     if (app != null)
     {
       sb.append(app);
       sb.append('\n');
-      sb.append(Strings.nullToEmpty(dlg));
+      final String checkedDlg = dlg == null ? "" : dlg;
+      sb.append(checkedDlg);
       sb.append('\n');
     }
 
@@ -180,7 +183,7 @@ public class Hawk
       }
       else
       {
-        throw new DataError.Bad("Unknown URI scheme \"" + uri.getScheme() + "\"");
+        throw new IllegalArgumentException("Unknown URI scheme \"" + uri.getScheme() + "\"");
       }
     }
     return port;
@@ -206,15 +209,16 @@ public class Hawk
    * @param body
    *          the body
    * @return the MAC
-   * @throws DataError
-   *           if there is an issue with the data that prevents creation of the
-   *           MAC
    */
   public static String calculateBodyMac(final HawkCredentials credentials, final String contentType, final String body)
   {
     // Check that required parameters are present
-    checkNotNull(contentType, "Content type is required but not supplied");
-    checkNotNull(body, "Body is required but not supplied");
+    if (contentType == null) {
+      throw new NullPointerException("Content type is required but not supplied");
+    }
+    if (body == null) {
+      throw new NullPointerException("Body is required but not supplied");
+    }
 
     final StringBuilder sb = new StringBuilder(1024);
     sb.append("hawk.");
@@ -243,11 +247,11 @@ public class Hawk
    * @param text
    *          the compiled string
    * @return the MAC
-   * @throws DataError
+   * @throws HawkError
    *           if there is an issue with the data that prevents creation of the
    *           MAC
    */
-  public static String calculateMac(final HawkCredentials credentials, final String text)
+  public static String calculateMac(final HawkCredentials credentials, final String text) throws HawkError
   {
     try
     {
@@ -255,20 +259,21 @@ public class Hawk
       try
       {
         mac.init(new SecretKeySpec(credentials.getKey().getBytes("UTF-8"), credentials.getJavaAlgorithm()));
-        return BaseEncoding.base64().encode(mac.doFinal(text.getBytes("UTF-8")));
+        return ""; // TODO: BASE64
+//        return BaseEncoding.base64().encode(mac.doFinal(text.getBytes("UTF-8")));
       }
       catch (UnsupportedEncodingException uee)
       {
-        throw new ServerError("Unable to encode with UTF-8", uee);
+        throw new HawkError("Unable to encode with UTF-8", uee);
       }
       catch (InvalidKeyException e)
       {
-        throw new DataError.Bad("Invalid key", e);
+        throw new HawkError("Invalid key", e);
       }
     }
     catch (NoSuchAlgorithmException nsae)
     {
-      throw new DataError.Bad("Unknown encryption algorithm", nsae);
+      throw new HawkError("Unknown encryption algorithm", nsae);
     }
   }
 
@@ -286,19 +291,25 @@ public class Hawk
    *          optional extra data, as supplied by the requestor to differentiate
    *          the request if required
    * @return the MAC
-   * @throws DataError
-   *           if there is an issue with the data that prevents creation of the
-   *           MAC
    */
   public static String generateBewit(final HawkCredentials credentials,
                                      final URI uri,
                                      final Long ttl,
                                      final String ext)
   {
-    checkNotNull(credentials, "Credentials are required but not supplied");
-    checkNotNull(uri, "URI is required but not supplied");
-    checkNotNull(ttl, "TTL is required but not supplied");
-    checkState((ttl > 0), "TTL must be a positive value");
+    if (credentials == null) {
+      throw new NullPointerException("Credentials are required but not supplied");
+    }
+    if (uri == null) {
+      throw new NullPointerException("URI is required but not supplied");
+    }
+    if (ttl == null) {
+      throw new NullPointerException("TTL is required but not supplied");
+    }
+    if (ttl > 0) {
+      throw new IllegalArgumentException("TTL must be a positive value");
+    }
+
 
     // Calculate expiry from ttl and current time
     Long expiry = System.currentTimeMillis() / MILLISECONDS_IN_SECONDS + ttl;
@@ -315,7 +326,8 @@ public class Hawk
     {
       sb.append(ext);
     }
-    return BaseEncoding.base64().encode(sb.toString().getBytes());
+    return ""; // TODO: BASE64
+//    return BaseEncoding.base64().encode(sb.toString().getBytes());
   }
 
   public enum AuthType
@@ -330,13 +342,11 @@ public class Hawk
     BEWIT;
 
     @Override
-    @JsonValue
     public String toString()
     {
         return super.toString().toLowerCase(Locale.ENGLISH);
     }
 
-    @JsonCreator
     public static AuthType parse(final String authType)
     {
       try
@@ -348,7 +358,7 @@ public class Hawk
         // N.B. we don't pass the iae as the cause of this exception because
         // this happens during invocation, and in that case the enum handler
         // will report the root cause exception rather than the one we throw.
-        throw new DataError.Bad("Hawk authentication type \"" + authType + "\" is invalid");
+        throw new HawkError("Hawk authentication type \"" + authType + "\" is invalid");
       }
     }
   }
@@ -369,13 +379,11 @@ public class Hawk
     MANDATORY;
 
     @Override
-    @JsonValue
     public String toString()
     {
         return super.toString().toLowerCase(Locale.ENGLISH).replaceAll("_", "-");
     }
 
-    @JsonCreator
     public static PayloadValidation parse(final String payloadValidation)
     {
       try
@@ -387,7 +395,7 @@ public class Hawk
         // N.B. we don't pass the iae as the cause of this exception because
         // this happens during invocation, and in that case the enum handler
         // will report the root cause exception rather than the one we throw.
-        throw new DataError.Bad("Hawk algorithm \"" + payloadValidation + "\" is invalid");
+        throw new HawkError("Hawk algorithm \"" + payloadValidation + "\" is invalid");
       }
     }
   }

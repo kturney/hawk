@@ -20,14 +20,13 @@ import static org.testng.Assert.*;
 
 import org.testng.annotations.Test;
 
-import com.wealdtech.DataError;
 import com.wealdtech.hawk.HawkCredentials;
 import com.wealdtech.hawk.HawkCredentials.Algorithm;
 
 public class HawkCredentialsTest
 {
   @Test
-  public void testModel() throws DataError
+  public void testModel() throws Exception
   {
     final HawkCredentials testhc1 = new HawkCredentials.Builder()
                                                        .keyId("testkeyid")
@@ -55,7 +54,7 @@ public class HawkCredentialsTest
   }
 
   @Test
-  public void testNullKey() throws DataError
+  public void testNullKey() throws Exception
   {
     try
     {
@@ -63,14 +62,14 @@ public class HawkCredentialsTest
       // Should not reach here
       fail();
     }
-    catch (DataError de)
+    catch (Exception de)
     {
       // Good
     }
   }
 
   @Test
-  public void testNullKeyId() throws DataError
+  public void testNullKeyId() throws Exception
   {
     try
     {
@@ -78,14 +77,14 @@ public class HawkCredentialsTest
       // Should not reach here
       fail();
     }
-    catch (DataError de)
+    catch (Exception de)
     {
       // Good
     }
   }
 
   @Test
-  public void testNullAlgorithm() throws DataError
+  public void testNullAlgorithm() throws Exception
   {
     try
     {
@@ -93,27 +92,27 @@ public class HawkCredentialsTest
       // Should not reach here
       fail();
     }
-    catch (DataError de)
+    catch (Exception de)
     {
       // Good
     }
   }
 
   @Test
-  public void testValidAlgorithm() throws DataError
+  public void testValidAlgorithm() throws Exception
   {
     Algorithm.parse("sha256");
   }
 
   @Test
-  public void testInvalidAlgorithm() throws DataError
+  public void testInvalidAlgorithm() throws Exception
   {
     try
     {
       Algorithm.parse("invalid");
       fail("Algoritm accepted invalid value");
     }
-    catch (DataError de)
+    catch (Exception de)
     {
       // Good
     }

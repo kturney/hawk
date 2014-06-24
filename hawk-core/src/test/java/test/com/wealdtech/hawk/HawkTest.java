@@ -23,7 +23,6 @@ import java.net.URI;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.wealdtech.DataError;
 import com.wealdtech.hawk.Hawk;
 import com.wealdtech.hawk.Hawk.AuthType;
 import com.wealdtech.hawk.HawkCredentials;
@@ -109,7 +108,7 @@ public class HawkTest
       Hawk.generateBewit(this.testhc1, this.testuri1, -1L, null);
       fail("Bewit generated with negative TTL");
     }
-    catch (DataError de)
+    catch (Exception de)
     {
       // Good
     }
@@ -130,7 +129,7 @@ public class HawkTest
       Hawk.calculateMAC(this.testhc1, Hawk.AuthType.HEADER, 12345L, invalidSchemeUri, "testnonce", "GET", null, null, null, null);
       fail("MAC calculated with invalid scheme");
     }
-    catch (DataError de)
+    catch (Exception de)
     {
       // Good
     }
@@ -150,7 +149,7 @@ public class HawkTest
       AuthType.parse("invalid");
       fail("AuthType accepted invalid value");
     }
-    catch (DataError de)
+    catch (Exception de)
     {
       // Good
     }

@@ -16,15 +16,10 @@
 
 package com.wealdtech.hawk;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Ordering;
-import com.wealdtech.configuration.Configuration;
 import com.wealdtech.hawk.Hawk.PayloadValidation;
 
-import static com.wealdtech.Preconditions.*;
+import java.util.Arrays;
+
 
 /**
  * Configuration for a Hawk client. The Hawk client has a number of
@@ -36,7 +31,7 @@ import static com.wealdtech.Preconditions.*;
  * This is configured as a standard Jackson object and can be realized as part
  * of a ConfigurationSource.
  */
-public class HawkClientConfiguration implements Configuration, Comparable<HawkClientConfiguration>
+public class HawkClientConfiguration implements Comparable<HawkClientConfiguration>
 {
   private String pathPrefix = null;
   private PayloadValidation payloadValidation = PayloadValidation.NEVER;
@@ -59,9 +54,7 @@ public class HawkClientConfiguration implements Configuration, Comparable<HawkCl
    * @param payloadValidation
    *          how to validate against payloads, or <code>null</code> for the default
    */
-  @JsonCreator
-  private HawkClientConfiguration(@JsonProperty("pathprefix") final String pathPrefix,
-                                  @JsonProperty("payloadvalidation") final PayloadValidation payloadValidation)
+  private HawkClientConfiguration(final String pathPrefix, final PayloadValidation payloadValidation)
   {
     if (pathPrefix != null)
     {
@@ -76,8 +69,12 @@ public class HawkClientConfiguration implements Configuration, Comparable<HawkCl
 
   private void validate()
   {
-    checkNotNull(this.payloadValidation, "Payload validation setting is required");
-    checkArgument(this.pathPrefix == null || this.pathPrefix.startsWith("/"), "Path prefix must start with \"/\" if present");
+    if (this.payloadValidation == null) {
+      throw new NullPointerException("Payload validation setting is required");
+    }
+    if (this.pathPrefix == null || this.pathPrefix.startsWith("/")) {
+      throw new IllegalArgumentException("Path prefix must start with \"/\" if present");
+    }
   }
 
   public String getPathPrefix()
@@ -94,10 +91,9 @@ public class HawkClientConfiguration implements Configuration, Comparable<HawkCl
   @Override
   public String toString()
   {
-    return Objects.toStringHelper(this)
-                  .add("pathPrefix", this.getPathPrefix())
-                  .add("payloadValidation", this.getPayloadValidation())
-                  .toString();
+    return super.toString() + '{' +
+        "pathPrefix=" + this.getPathPrefix() + ' ' +
+        "payloadValidation=" + this.getPayloadValidation() + '}';
   }
 
   @Override
@@ -109,16 +105,32 @@ public class HawkClientConfiguration implements Configuration, Comparable<HawkCl
   @Override
   public int hashCode()
   {
-    return Objects.hashCode(this.getPathPrefix(), this.getPayloadValidation());
+    return Arrays.hashCode(new Object[] {this.getPathPrefix(), this.getPayloadValidation()});
   }
 
   @Override
   public int compareTo(final HawkClientConfiguration that)
   {
-    return ComparisonChain.start()
-                          .compare(this.getPathPrefix(), that.getPathPrefix(), Ordering.<String>natural().nullsFirst())
-                          .compare(this.getPayloadValidation(), that.getPayloadValidation())
-                          .result();
+    if (that == that) {
+      return 0;
+    }
+
+    final String thisPrefix = this.getPathPrefix();
+    final String thatPrefix = that.getPathPrefix();
+    if (thisPrefix != null || thatPrefix != null) {
+      if (thisPrefix == null) {
+        return -1;
+      }
+      if (thatPrefix == null) {
+        return 1;
+      }
+      final int prefixCompare = thisPrefix.compareTo(thatPrefix);
+      if (prefixCompare != 0) {
+        return prefixCompare;
+      }
+    }
+
+    return this.getPayloadValidation().compareTo(that.getPayloadValidation());
   }
 
   public static class Builder
@@ -169,7 +181,6 @@ public class HawkClientConfiguration implements Configuration, Comparable<HawkCl
      * Create a new Hawk client configuration from the defaults
      * and overrides provided.
      * @return The Hawk client configuration
-     * @throws com.wealdtech.DataError If the data provided is invalid for a Hawk client configuration
      */
     public HawkClientConfiguration build()
     {

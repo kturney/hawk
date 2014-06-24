@@ -16,16 +16,8 @@
 
 package com.wealdtech.hawk;
 
-import static com.wealdtech.Preconditions.*;
-
+import java.util.Arrays;
 import java.util.Locale;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import com.google.common.base.Objects;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableMap;
-import com.wealdtech.DataError;
 
 /**
  * HawkCredentials contains the information required to authenticate requests
@@ -38,17 +30,21 @@ public final class HawkCredentials implements Comparable<HawkCredentials>
 {
   public enum Algorithm
   {
-    SHA1,
-    SHA256;
+    SHA1("HmacSHA1"),
+    SHA256("HmacSHA256");
+
+    private final String mJavaAlgo;
+
+    private Algorithm(String algo) {
+      mJavaAlgo = algo;
+    }
 
     @Override
-    @JsonValue
     public String toString()
     {
         return super.toString().toLowerCase(Locale.ENGLISH).replaceAll("_", "-");
     }
 
-    @JsonCreator
     public static Algorithm parse(final String algorithm)
     {
       try
@@ -60,19 +56,18 @@ public final class HawkCredentials implements Comparable<HawkCredentials>
         // N.B. we don't pass the iae as the cause of this exception because
         // this happens during invocation, and in that case the enum handler
         // will report the root cause exception rather than the one we throw.
-        throw new DataError.Bad("Hawk algorithm \"" + algorithm + "\" is invalid");
+        throw new HawkError("Hawk algorithm \"" + algorithm + "\" is invalid");
       }
+    }
+
+    public String getJavaAlgorithm() {
+      return mJavaAlgo;
     }
   }
 
   private final String keyId;
   private final String key;
   private final Algorithm algorithm;
-
-  private static final ImmutableMap<Algorithm, String> JAVAALGORITHMS = new ImmutableMap.Builder<Algorithm, String>()
-                                                                                        .put(Algorithm.SHA1, "HmacSHA1")
-                                                                                        .put(Algorithm.SHA256, "HmacSHA256")
-                                                                                        .build();
 
   private HawkCredentials(final String keyId, final String key, final Algorithm algorithm)
   {
@@ -84,16 +79,18 @@ public final class HawkCredentials implements Comparable<HawkCredentials>
 
   /**
    * Carry out validation of the object as part of creation routine.
-   *
-   * @throws DataError
-   *           if there is an issue with the data that prevents creation of the
-   *           credentials
    */
   private void validate()
   {
-    checkNotNull(this.keyId, "The key ID is required");
-    checkNotNull(this.key, "The key is required");
-    checkNotNull(this.algorithm, "The algorithm is required");
+    if (this.keyId == null) {
+      throw new NullPointerException("The key ID is required");
+    }
+    if (this.key == null) {
+      throw new NullPointerException("The key is required");
+    }
+    if (this.algorithm == null) {
+      throw new NullPointerException("The algorithm is required");
+    }
   }
 
   /**
@@ -135,18 +132,17 @@ public final class HawkCredentials implements Comparable<HawkCredentials>
    */
   public String getJavaAlgorithm()
   {
-    return JAVAALGORITHMS.get(this.algorithm);
+    return this.algorithm.getJavaAlgorithm();
   }
 
   // Standard object methods follow
   @Override
   public String toString()
   {
-    return Objects.toStringHelper(this)
-                  .add("keyId", this.getKeyId())
-                  .add("key", this.getKey())
-                  .add("algorithm", this.getAlgorithm())
-                  .toString();
+    return super.toString() + '{' +
+        "keyId=" + this.getKeyId() + ' ' +
+        "key=" + this.getKey() + ' ' +
+        "algorithm=" + this.getAlgorithm() + '}';
   }
 
   @Override
@@ -158,17 +154,23 @@ public final class HawkCredentials implements Comparable<HawkCredentials>
   @Override
   public int hashCode()
   {
-    return Objects.hashCode(this.getKeyId(), this.getKey(), this.getAlgorithm());
+    return Arrays.hashCode(new Object[] {this.getKeyId(), this.getKey(), this.getAlgorithm()});
   }
 
   @Override
   public int compareTo(final HawkCredentials that)
   {
-    return ComparisonChain.start()
-                          .compare(this.getKeyId(), that.getKeyId())
-                          .compare(this.getKey(), that.getKey())
-                          .compare(this.getAlgorithm(), that.getAlgorithm())
-                          .result();
+    final int idCompare = this.getKeyId().compareTo(that.getKeyId());
+    if (idCompare != 0) {
+      return idCompare;
+    }
+
+    final int keyCompare = this.getKey().compareTo(that.getKey());
+    if (keyCompare != 0) {
+      return keyCompare;
+    }
+
+    return this.getAlgorithm().compareTo(that.getAlgorithm());
   }
 
   /**
@@ -244,9 +246,6 @@ public final class HawkCredentials implements Comparable<HawkCredentials>
      * Build the Hawk credentials.
      *
      * @return the Hawk credentials
-     * @throws DataError
-     *           if there is an issue with the data that prevents creation of
-     *           the credentials
      */
     public HawkCredentials build()
     {

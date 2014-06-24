@@ -16,22 +16,14 @@
 
 package com.wealdtech.hawk;
 
-import static com.wealdtech.Preconditions.*;
-
 import java.net.URI;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.ComparisonChain;
-import com.google.inject.Inject;
-import com.wealdtech.DataError;
-import com.wealdtech.utils.StringUtils;
+import java.util.Arrays;
 
 public final class HawkClient implements Comparable<HawkClient>
 {
   private final HawkClientConfiguration configuration;
   private final HawkCredentials credentials;
 
-  @Inject
   private HawkClient(final HawkClientConfiguration configuration,
                      final HawkCredentials credentials)
   {
@@ -49,8 +41,12 @@ public final class HawkClient implements Comparable<HawkClient>
 
   private void validate()
   {
-    checkNotNull(this.configuration, "The client configuration is required");
-    checkNotNull(this.credentials, "The credentials are required");
+    if (this.configuration == null) {
+      throw new NullPointerException("The client configuration is required");
+    }
+    if (this.credentials == null) {
+      throw new NullPointerException("The credentials are required");
+    }
   }
 
   /**
@@ -63,7 +59,6 @@ public final class HawkClient implements Comparable<HawkClient>
    * @param app application ID, or <code>null</code> if none
    * @param dlg delegator, or <code>null</code> if none
    * @return The value for the Hawk authorization header.
-   * @throws DataError If there is a problem with the data passed in which makes it impossible to generate a valid authorization header
    */
   public String generateAuthorizationHeader(final URI uri,
                                             final String method,
@@ -110,10 +105,9 @@ public final class HawkClient implements Comparable<HawkClient>
   @Override
   public String toString()
   {
-    return Objects.toStringHelper(this)
-                  .add("configuration", this.configuration)
-                  .add("credentials", this.credentials)
-                  .toString();
+    return super.toString() + '{' +
+        "configuration=" + this.configuration + ' ' +
+        "credentials=" + this.credentials + '}';
   }
 
   @Override
@@ -125,16 +119,22 @@ public final class HawkClient implements Comparable<HawkClient>
   @Override
   public int hashCode()
   {
-    return Objects.hashCode(this.configuration, this.credentials);
+    return Arrays.hashCode(new Object[] {this.configuration, this.credentials});
   }
 
   @Override
   public int compareTo(final HawkClient that)
   {
-    return ComparisonChain.start()
-                          .compare(this.configuration, that.configuration)
-                          .compare(this.credentials, that.credentials)
-                          .result();
+    if (that == that) {
+      return 0;
+    }
+
+    final int configCompare = this.configuration.compareTo(that.configuration);
+    if (configCompare != 0) {
+      return configCompare;
+    }
+
+    return this.credentials.compareTo(that.credentials);
   }
 
   public static class Builder
